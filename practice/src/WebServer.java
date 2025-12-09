@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 
 public class WebServer {
     private HttpServer server;
@@ -20,6 +21,8 @@ public class WebServer {
 
         // Create context for home page
         server.createContext("/", new HomePageHandler());
+        // Create context for about page (new)
+        server.createContext("/about", new AboutHandler());
 
         // Start the server
         server.setExecutor(null); // creates a default executor
@@ -43,12 +46,13 @@ public class WebServer {
 
             // Set response headers
             exchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
-            exchange.sendResponseHeaders(200, response.getBytes().length);
+            byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, bytes.length);
 
             // Send response
-            OutputStream os = exchange.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(bytes);
+            }
         }
 
         private String getHomePage() {
@@ -132,7 +136,7 @@ public class WebServer {
                     "        \n" +
                     "        <div>\n" +
                     "            <a href=\"#\" class=\"button\">Get Started</a>\n" +
-                    "            <a href=\"#\" class=\"button\">Learn More</a>\n" +
+                    "            <a href=\"/about\" class=\"button\">Learn More</a>\n" +
                     "        </div>\n" +
                     "        \n" +
                     "        <div class=\"features\">\n" +
@@ -155,4 +159,3 @@ public class WebServer {
         }
     }
 }
-
